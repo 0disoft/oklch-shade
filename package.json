@@ -1,0 +1,214 @@
+{
+  "name": "oklch-shade",
+  "displayName": "OKLCH Shade",
+  "description": "Preview raw color tokens in CSS variables (OKLCH and more).",
+  "publisher": "0disoft",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/0disoft/oklch-shade"
+  },
+  "version": "1.0.1",
+  "engines": {
+    "vscode": "^1.107.0"
+  },
+  "categories": [
+    "Other"
+  ],
+  "activationEvents": [
+    "onLanguage:css",
+    "onLanguage:scss",
+    "onLanguage:less"
+  ],
+  "main": "./out/extension.js",
+  "contributes": {
+    "commands": [
+      {
+        "command": "oklch-shade.convertColor",
+        "title": "OKLCH Shade: Convert Color Token"
+      },
+      {
+        "command": "oklch-shade.convertColorWorkspace",
+        "title": "OKLCH Shade: Convert Color Tokens (File/Folder)"
+      }
+    ],
+    "menus": {
+      "editor/context": [
+        {
+          "command": "oklch-shade.convertColor",
+          "group": "navigation",
+          "when": "editorTextFocus && oklchShade.hasColor && (resourceLangId == css || resourceLangId == scss || resourceLangId == less)"
+        }
+      ],
+      "explorer/context": [
+        {
+          "command": "oklch-shade.convertColorWorkspace",
+          "group": "navigation",
+          "when": "resourceLangId == css || resourceLangId == scss || resourceLangId == less"
+        },
+        {
+          "command": "oklch-shade.convertColorWorkspace",
+          "group": "navigation",
+          "when": "explorerResourceIsFolder"
+        }
+      ]
+    },
+    "configuration": {
+      "title": "OKLCH Shade",
+      "properties": {
+        "oklchShade.languages": {
+          "type": "array",
+          "default": [
+            "css",
+            "scss",
+            "less"
+          ],
+          "items": {
+            "type": "string"
+          },
+          "description": "Language IDs to enable raw color previews."
+        },
+        "oklchShade.scanScope": {
+          "type": "string",
+          "enum": [
+            "custom-properties",
+            "all"
+          ],
+          "default": "custom-properties",
+          "description": "Where to scan for raw color values."
+        },
+        "oklchShade.defaultSpace": {
+          "type": "string",
+          "enum": [
+            "oklch",
+            "oklab",
+            "lch",
+            "lab",
+            "rgb",
+            "hsl",
+            "hwb",
+            "display-p3"
+          ],
+          "default": "oklch",
+          "description": "Fallback color space when no hint is available."
+        },
+        "oklchShade.enableHeuristics": {
+          "type": "boolean",
+          "default": true,
+          "description": "Enable heuristic color space detection when no hint is present."
+        },
+        "oklchShade.hexPreviewMode": {
+          "type": "string",
+          "enum": [
+            "auto",
+            "on",
+            "off"
+          ],
+          "default": "auto",
+          "description": "Hex preview behavior. Auto enables hex only when VS Code's built-in decorators are disabled."
+        },
+        "oklchShade.inlineAction": {
+          "type": "boolean",
+          "default": true,
+          "description": "Show an inline 'Convert' action next to detected colors."
+        },
+        "oklchShade.statusBarAction": {
+          "type": "boolean",
+          "default": true,
+          "description": "Show a Convert action in the status bar for supported files."
+        },
+        "oklchShade.ambiguousHueSpace": {
+          "type": "string",
+          "enum": [
+            "hsl",
+            "hwb"
+          ],
+          "default": "hsl",
+          "description": "Prefer HSL or HWB when hue-first raw values are ambiguous."
+        },
+        "oklchShade.variableRules": {
+          "type": "array",
+          "default": [
+            {
+              "match": "oklch",
+              "space": "oklch"
+            },
+            {
+              "match": "oklab",
+              "space": "oklab"
+            },
+            {
+              "match": "lch",
+              "space": "lch"
+            },
+            {
+              "match": "lab",
+              "space": "lab"
+            },
+            {
+              "match": "rgb",
+              "space": "rgb"
+            },
+            {
+              "match": "hsl",
+              "space": "hsl"
+            },
+            {
+              "match": "hwb",
+              "space": "hwb"
+            },
+            {
+              "match": "p3",
+              "space": "display-p3"
+            }
+          ],
+          "items": {
+            "type": "object",
+            "properties": {
+              "match": {
+                "type": "string",
+                "description": "Regex string applied to variable names (e.g. '^--raw-')."
+              },
+              "space": {
+                "type": "string",
+                "enum": [
+                  "oklch",
+                  "oklab",
+                  "lch",
+                  "lab",
+                  "rgb",
+                  "hsl",
+                  "hwb",
+                  "display-p3"
+                ]
+              }
+            },
+            "required": [
+              "match",
+              "space"
+            ]
+          },
+          "description": "Rules that map variable names to color spaces."
+        }
+      }
+    }
+  },
+  "scripts": {
+    "vscode:prepublish": "pnpm run compile",
+    "compile": "tsc -p ./",
+    "watch": "tsc -watch -p ./",
+    "pretest": "pnpm run compile && pnpm run lint",
+    "lint": "eslint src",
+    "test": "vscode-test"
+  },
+  "devDependencies": {
+    "@types/vscode": "^1.107.0",
+    "@types/mocha": "^10.0.10",
+    "@types/node": "22.x",
+    "typescript-eslint": "^8.48.1",
+    "eslint": "^9.39.1",
+    "typescript": "^5.9.3",
+    "@vscode/test-cli": "^0.0.12",
+    "@vscode/test-electron": "^2.5.2"
+  }
+}
