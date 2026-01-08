@@ -4,8 +4,13 @@
 	"version": "2.0.0",
 	"tasks": [
 		{
-			"type": "npm",
-			"script": "watch",
+			"label": "pnpm: watch",
+			"type": "shell",
+			"command": "pnpm",
+			"args": [
+				"run",
+				"watch"
+			],
 			"problemMatcher": "$tsc-watch",
 			"isBackground": true,
 			"presentation": {
@@ -15,6 +20,20 @@
 				"kind": "build",
 				"isDefault": true
 			}
+		},
+		{
+			"label": "pnpm: compile",
+			"type": "shell",
+			"command": "pnpm",
+			"args": [
+				"run",
+				"compile"
+			],
+			"problemMatcher": "$tsc",
+			"presentation": {
+				"reveal": "never"
+			},
+			"group": "build"
 		}
 	]
 }
