@@ -4,6 +4,10 @@ All notable changes to the "oklch-shade" extension will be documented in this fi
 
 Check [Keep a Changelog](http://keepachangelog.com/) for recommendations on how to structure this file.
 
+## [1.0.4] - 2026-01-11
+
+- Lower the minimum VS Code engine to ^1.104.0 for Antigravity compatibility.
+
 ## [1.0.3] - 2026-01-04
 
 - Add marketplace icon.
