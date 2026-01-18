@@ -3,6 +3,7 @@ import type { ExtensionConfig } from '../config';
 import { formatFunctionLabel, getFormatOptions, wrapCssFunction } from '../format/colorFormats';
 import { resolveColorAtPosition } from './colorResolution';
 
+
 export class RawColorHoverProvider implements vscode.HoverProvider {
   constructor(private readonly readConfig: () => ExtensionConfig) {}
 

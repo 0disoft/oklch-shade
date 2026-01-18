@@ -1,7 +1,7 @@
 import * as vscode from 'vscode';
 import type { ExtensionConfig } from '../config';
 import { formatColor } from '../format/colorFormats';
-import { resolveColorAtSelection } from './colorResolution';
+import { resolveColorAtSelection, type ResolvedColor } from './colorResolution';
 
 export class StatusBarAction {
   private readonly item: vscode.StatusBarItem;
@@ -13,8 +13,12 @@ export class StatusBarAction {
     this.item.text = this.label;
   }
 
-  update(editor?: vscode.TextEditor): void {
-    const config = this.readConfig();
+  update(
+    editor?: vscode.TextEditor,
+    resolved?: ResolvedColor | null,
+    configOverride?: ExtensionConfig
+  ): void {
+    const config = configOverride ?? this.readConfig();
     if (!config.statusBarAction) {
       this.item.hide();
       return;
@@ -25,12 +29,14 @@ export class StatusBarAction {
       return;
     }
 
-    const resolved = resolveColorAtSelection(editor.document, editor.selection, config, {
-      respectColorDirectives: false,
-      respectConvertDirectives: true
-    });
-    if (resolved) {
-      const hex = formatColor(resolved.rgba, 'hex');
+    const resolvedColor =
+      resolved ??
+      resolveColorAtSelection(editor.document, editor.selection, config, {
+        respectColorDirectives: false,
+        respectConvertDirectives: true
+      });
+    if (resolvedColor) {
+      const hex = formatColor(resolvedColor.rgba, 'hex');
       this.item.tooltip = `Convert color token (${hex})`;
     } else {
       this.item.tooltip = 'Move the cursor to a color token to convert';

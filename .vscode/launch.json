@@ -10,7 +10,9 @@
 			"type": "extensionHost",
 			"request": "launch",
 			"args": [
-				"--extensionDevelopmentPath=${workspaceFolder}"
+				"--extensionDevelopmentPath=${workspaceFolder}",
+				"${workspaceFolder}",
+				"${workspaceFolder}/src/test/color-sample.css"
 			],
 			"outFiles": [
 				"${workspaceFolder}/out/**/*.js"

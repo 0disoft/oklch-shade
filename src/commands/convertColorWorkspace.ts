@@ -3,7 +3,7 @@ import * as vscode from 'vscode';
 import type { Rgba } from '../colors/types';
 import type { ExtensionConfig } from '../config';
 import { formatColor, getFormatOptions, wrapCssFunction, type FormatId } from '../format/colorFormats';
-import { scanDocument } from '../parser/cssScanner';
+import { getCustomPropertyMap, getScanCandidates } from '../parser/scanCache';
 import { resolveColorFromCandidate } from '../provider/colorResolution';
 
 interface ScopePickItem extends vscode.QuickPickItem {
@@ -20,8 +20,21 @@ const languageExtensions: Record<string, string[]> = {
   css: ['css'],
   scss: ['scss'],
   less: ['less'],
-  sass: ['sass']
+  sass: ['sass'],
+  postcss: ['pcss', 'postcss'],
+  stylus: ['styl'],
+  styl: ['styl']
 };
+
+const EXCLUDED_WORKSPACE_GLOBS = [
+  '**/node_modules/**',
+  '**/.git/**',
+  '**/out/**',
+  '**/dist/**',
+  '**/build/**',
+  '**/coverage/**',
+  '**/.vscode-test/**'
+] as const;
 
 const buildSearchPattern = (languages: string[]): string => {
   const extensions = new Set<string>();
@@ -29,6 +42,10 @@ const buildSearchPattern = (languages: string[]): string => {
     const mapped = languageExtensions[language];
     if (mapped) {
       mapped.forEach((ext) => extensions.add(ext));
+      continue;
+    }
+    if (/^[a-z0-9]+$/i.test(language)) {
+      extensions.add(language);
     }
   }
 
@@ -122,9 +139,16 @@ const pickFormat = async (): Promise<FormatPickItem | undefined> => {
 const collectFiles = async (roots: string[], config: ExtensionConfig): Promise<vscode.Uri[]> => {
   const pattern = buildSearchPattern(config.languages);
   const results: vscode.Uri[] = [];
+  const exclude =
+    EXCLUDED_WORKSPACE_GLOBS.length > 0
+      ? `{${EXCLUDED_WORKSPACE_GLOBS.join(',')}}`
+      : undefined;
 
   for (const root of roots) {
-    const found = await vscode.workspace.findFiles(new vscode.RelativePattern(root, pattern));
+    const found = await vscode.workspace.findFiles(
+      new vscode.RelativePattern(root, pattern),
+      exclude
+    );
     results.push(...found);
   }
 
@@ -227,14 +251,18 @@ export const runConvertColorWorkspaceCommand = async (
         });
 
         const document = await vscode.workspace.openTextDocument(uri);
-        const candidates = scanDocument(document, config, {
+        const scanOptions = {
           respectColorDirectives: false,
           respectConvertDirectives: true
-        });
+        };
+        const customPropertyMap = getCustomPropertyMap(document, config, scanOptions);
+        const candidates = getScanCandidates(document, config, scanOptions);
 
         const replacements = candidates
           .map((candidate) => {
-            const resolved = resolveColorFromCandidate(candidate, config);
+            const resolved = resolveColorFromCandidate(candidate, config, {
+              customPropertyMap
+            });
             const value = buildReplacementValue(format.formatId, resolved);
             if (!value) return null;
 

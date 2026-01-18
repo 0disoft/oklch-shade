@@ -13,6 +13,7 @@ export interface ExtensionConfig {
   defaultSpace: SpaceId;
   enableHeuristics: boolean;
   hexPreviewMode: 'auto' | 'on' | 'off';
+  disableBuiltInDecorators: boolean;
   inlineAction: boolean;
   statusBarAction: boolean;
   ambiguousHueSpace: 'hsl' | 'hwb';
@@ -21,10 +22,11 @@ export interface ExtensionConfig {
 
 const fallbackConfig: ExtensionConfig = {
   languages: ['css', 'scss', 'less'],
-  scanScope: 'custom-properties',
+  scanScope: 'all',
   defaultSpace: 'oklch',
   enableHeuristics: true,
   hexPreviewMode: 'auto',
+  disableBuiltInDecorators: false,
   inlineAction: true,
   statusBarAction: true,
   ambiguousHueSpace: 'hsl',
@@ -48,27 +50,38 @@ const coerceSpaceId = (value: unknown, fallback: SpaceId): SpaceId => {
 export const getConfig = (): ExtensionConfig => {
   const config = vscode.workspace.getConfiguration('oklchShade');
 
-  const languages = config.get<string[]>('languages') ?? fallbackConfig.languages;
-  const scanScope = (config.get('scanScope') as ExtensionConfig['scanScope']) ?? fallbackConfig.scanScope;
-const defaultSpace = coerceSpaceId(config.get('defaultSpace'), fallbackConfig.defaultSpace);
-const enableHeuristics = config.get<boolean>('enableHeuristics') ?? fallbackConfig.enableHeuristics;
-const hexPreviewModeRaw = config.get<'auto' | 'on' | 'off'>('hexPreviewMode');
-const legacyHexPreview = config.get<boolean>('enableHexPreview');
-const hexPreviewMode =
-  hexPreviewModeRaw === 'on' || hexPreviewModeRaw === 'off' || hexPreviewModeRaw === 'auto'
-    ? hexPreviewModeRaw
-    : legacyHexPreview === true
-      ? 'on'
-      : legacyHexPreview === false
-        ? 'off'
-        : fallbackConfig.hexPreviewMode;
-const inlineAction = config.get<boolean>('inlineAction') ?? fallbackConfig.inlineAction;
-const statusBarAction = config.get<boolean>('statusBarAction') ?? fallbackConfig.statusBarAction;
-const ambiguousHueSpaceRaw = config.get<'hsl' | 'hwb'>('ambiguousHueSpace');
-const ambiguousHueSpace = ambiguousHueSpaceRaw === 'hwb' ? 'hwb' : fallbackConfig.ambiguousHueSpace;
+  const languagesRaw = config.get<unknown>('languages');
+  const languages = Array.isArray(languagesRaw)
+    ? languagesRaw.filter((value): value is string => typeof value === 'string')
+    : fallbackConfig.languages;
+  const scanScope =
+    (config.get('scanScope') as ExtensionConfig['scanScope']) ?? fallbackConfig.scanScope;
+  const defaultSpace = coerceSpaceId(config.get('defaultSpace'), fallbackConfig.defaultSpace);
+  const enableHeuristics =
+    config.get<boolean>('enableHeuristics') ?? fallbackConfig.enableHeuristics;
+  const disableBuiltInDecorators =
+    config.get<boolean>('disableBuiltInDecorators') ?? fallbackConfig.disableBuiltInDecorators;
+  const hexPreviewModeRaw = config.get<'auto' | 'on' | 'off'>('hexPreviewMode');
+  const legacyHexPreview = config.get<boolean>('enableHexPreview');
+  const hexPreviewMode =
+    hexPreviewModeRaw === 'on' || hexPreviewModeRaw === 'off' || hexPreviewModeRaw === 'auto'
+      ? hexPreviewModeRaw
+      : legacyHexPreview === true
+        ? 'on'
+        : legacyHexPreview === false
+          ? 'off'
+          : fallbackConfig.hexPreviewMode;
+  const inlineAction = config.get<boolean>('inlineAction') ?? fallbackConfig.inlineAction;
+  const statusBarAction = config.get<boolean>('statusBarAction') ?? fallbackConfig.statusBarAction;
+  const ambiguousHueSpaceRaw = config.get<'hsl' | 'hwb'>('ambiguousHueSpace');
+  const ambiguousHueSpace =
+    ambiguousHueSpaceRaw === 'hwb' ? 'hwb' : fallbackConfig.ambiguousHueSpace;
 
-  const variableRulesRaw = config.get<VariableRule[]>('variableRules') ?? fallbackConfig.variableRules;
-  const variableRules = variableRulesRaw
+  const variableRulesRaw = config.get<unknown>('variableRules');
+  const variableRulesInput = Array.isArray(variableRulesRaw)
+    ? variableRulesRaw
+    : fallbackConfig.variableRules;
+  const variableRules = variableRulesInput
     .filter((rule) => rule && typeof rule.match === 'string')
     .map((rule) => ({
       match: rule.match,
@@ -77,13 +90,14 @@ const ambiguousHueSpace = ambiguousHueSpaceRaw === 'hwb' ? 'hwb' : fallbackConfi
 
   return {
     languages,
-  scanScope,
-  defaultSpace,
-  enableHeuristics,
-  hexPreviewMode,
-  inlineAction,
-  statusBarAction,
-  ambiguousHueSpace,
-  variableRules
-};
+    scanScope,
+    defaultSpace,
+    enableHeuristics,
+    hexPreviewMode,
+    disableBuiltInDecorators,
+    inlineAction,
+    statusBarAction,
+    ambiguousHueSpace,
+    variableRules
+  };
 };

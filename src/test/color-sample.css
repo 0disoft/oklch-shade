@@ -1,0 +1,40 @@
+/* OKLCH Shade test sample */
+
+/* Purpose: visually verify color decorators and conversion hints. */
+/* Open this file in the Extension Development Host (F5). */
+
+:root {
+  /* Hex colors */
+  --sample-hex: #3a7bd5;
+  --sample-hex8: #3a7bd5cc;
+
+  /* Raw values (will be interpreted by heuristics/default space) */
+  --sample-raw: 0.72 0.11 215;
+  --sample-raw-alpha: 0.72 0.11 215 / 0.6;
+
+  /* Explicit functions */
+  --sample-oklch: oklch(70% 0.13 230);
+  --sample-oklab: oklab(0.7 0.03 -0.07);
+  --sample-lab: lab(60% 30 10);
+  --sample-lch: lch(60% 40 120);
+  --sample-hsl: hsl(210 60% 52%);
+  --sample-hwb: hwb(210 20% 10%);
+  --sample-rgb: rgb(58 123 213);
+  --sample-p3: color(display-p3 0.25 0.45 0.8);
+
+  /* Directives */
+  /* @color off */
+  --disabled-hex: #ff00aa;
+  /* @color on */
+
+  /* @convert off */
+  --no-convert: oklch(75% 0.1 190);
+  /* @convert on */
+}
+
+.theme {
+  color: var(--sample-hex);
+  background: var(--sample-oklch);
+  border-color: var(--sample-hsl);
+}
+

@@ -2,7 +2,7 @@ import * as vscode from 'vscode';
 import type { ExtensionConfig } from '../config';
 import type { FormatId } from '../format/colorFormats';
 import { formatColor, formatFunctionLabel, getFormatOptions, wrapCssFunction } from '../format/colorFormats';
-import { scanDocument } from '../parser/cssScanner';
+import { getCustomPropertyMap, getScanCandidates } from '../parser/scanCache';
 import { resolveColorAtSelection, resolveColorFromCandidate } from '../provider/colorResolution';
 
 interface QuickPickFormatItem extends vscode.QuickPickItem {
@@ -106,12 +106,16 @@ export const runConvertColorCommand = async (
     return;
   }
 
-  const replacements = scanDocument(editor.document, config, {
+  const scanOptions = {
     respectColorDirectives: false,
     respectConvertDirectives: true
-  })
+  };
+  const customPropertyMap = getCustomPropertyMap(editor.document, config, scanOptions);
+  const replacements = getScanCandidates(editor.document, config, scanOptions)
     .map((candidate) => {
-      const resolvedCandidate = resolveColorFromCandidate(candidate, config);
+      const resolvedCandidate = resolveColorFromCandidate(candidate, config, {
+        customPropertyMap
+      });
       if (!resolvedCandidate) return null;
       const rawValue = formatColor(resolvedCandidate.rgba, picked.formatId);
       const value = picked.useFunction ? wrapCssFunction(picked.formatId, rawValue) : rawValue;

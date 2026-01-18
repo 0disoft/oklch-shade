@@ -4,6 +4,12 @@ All notable changes to the "oklch-shade" extension will be documented in this fi
 
 Check [Keep a Changelog](http://keepachangelog.com/) for recommendations on how to structure this file.
 
+## [1.1.0] - 2026-01-18 UTC
+
+- Add var() resolution for custom properties in previews and conversions.
+- Extend color parsing to support display-p3 functions alongside existing formats.
+- Default scan scope to all declarations and add a toggle for built-in decorators.
+
 ## [1.0.4] - 2026-01-11
 
 - Lower the minimum VS Code engine to ^1.104.0 for Antigravity compatibility.

@@ -7,18 +7,22 @@ import { RawColorHoverProvider } from './provider/hoverProvider';
 import { InlineActionProvider } from './provider/inlineActionProvider';
 import { StatusBarAction } from './provider/statusBarAction';
 import { resolveColorAtSelection } from './provider/colorResolution';
+import { ColorDecorationManager } from './provider/colorDecorations';
+import { clearScanCache, clearScanCacheForUri } from './parser/scanCache';
 
 export function activate(context: vscode.ExtensionContext) {
   const provider = new RawColorProvider(getConfig);
   const hoverProvider = new RawColorHoverProvider(getConfig);
   const inlineActionProvider = new InlineActionProvider(getConfig);
   const statusBarAction = new StatusBarAction(getConfig);
+  const colorDecorations = new ColorDecorationManager(getConfig);
   let registrations: vscode.Disposable[] = [];
 
-  const updateContext = (editor?: vscode.TextEditor) => {
+  const updateEditorState = (editor?: vscode.TextEditor) => {
     const config = getConfig();
     if (!editor || !config.languages.includes(editor.document.languageId)) {
       void vscode.commands.executeCommand('setContext', 'oklchShade.hasColor', false);
+      statusBarAction.update(editor, null, config);
       return;
     }
 
@@ -27,6 +31,8 @@ export function activate(context: vscode.ExtensionContext) {
       respectConvertDirectives: true
     });
     void vscode.commands.executeCommand('setContext', 'oklchShade.hasColor', Boolean(resolved));
+    statusBarAction.update(editor, resolved, config);
+    colorDecorations.update(editor);
   };
 
   const registerProviders = () => {
@@ -47,8 +53,8 @@ export function activate(context: vscode.ExtensionContext) {
   };
 
   registerProviders();
-  statusBarAction.update(vscode.window.activeTextEditor);
-  updateContext(vscode.window.activeTextEditor);
+  updateEditorState(vscode.window.activeTextEditor);
+  colorDecorations.update(vscode.window.activeTextEditor);
 
   context.subscriptions.push(
     vscode.commands.registerCommand('oklch-shade.convertColor', (range?: vscode.Range) =>
@@ -64,24 +70,40 @@ export function activate(context: vscode.ExtensionContext) {
 
   context.subscriptions.push(
     vscode.window.onDidChangeActiveTextEditor((editor) => {
-      statusBarAction.update(editor);
-      updateContext(editor);
+      updateEditorState(editor);
+      colorDecorations.update(editor);
     })
   );
 
   context.subscriptions.push(
     vscode.window.onDidChangeTextEditorSelection((event) => {
-      statusBarAction.update(event.textEditor);
-      updateContext(event.textEditor);
+      updateEditorState(event.textEditor);
     })
   );
 
   context.subscriptions.push(
     vscode.workspace.onDidChangeConfiguration((event) => {
       if (event.affectsConfiguration('oklchShade')) {
+        clearScanCache();
         registerProviders();
-        statusBarAction.update(vscode.window.activeTextEditor);
-        updateContext(vscode.window.activeTextEditor);
+        updateEditorState(vscode.window.activeTextEditor);
+        colorDecorations.update(vscode.window.activeTextEditor);
+      }
+    })
+  );
+
+  context.subscriptions.push(
+    vscode.workspace.onDidCloseTextDocument((document) => {
+      clearScanCacheForUri(document.uri);
+    })
+  );
+
+  context.subscriptions.push(
+    vscode.workspace.onDidChangeTextDocument((event) => {
+      for (const editor of vscode.window.visibleTextEditors) {
+        if (editor.document.uri.toString() === event.document.uri.toString()) {
+          colorDecorations.schedule(editor);
+        }
       }
     })
   );
@@ -91,6 +113,7 @@ export function activate(context: vscode.ExtensionContext) {
       registrations.forEach((disposable) => disposable.dispose());
       registrations = [];
       statusBarAction.dispose();
+      colorDecorations.dispose();
     }
   });
 }

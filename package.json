@@ -9,7 +9,7 @@
     "type": "git",
     "url": "https://github.com/0disoft/oklch-shade"
   },
-  "version": "1.0.4",
+  "version": "1.1.0",
   "engines": {
     "vscode": "^1.104.0"
   },
@@ -75,7 +75,7 @@
             "custom-properties",
             "all"
           ],
-          "default": "custom-properties",
+          "default": "all",
           "description": "Where to scan for raw color values."
         },
         "oklchShade.defaultSpace": {
@@ -107,6 +107,11 @@
           ],
           "default": "auto",
           "description": "Hex preview behavior. Auto enables hex only when VS Code's built-in decorators are disabled."
+        },
+        "oklchShade.disableBuiltInDecorators": {
+          "type": "boolean",
+          "default": false,
+          "description": "Disable VS Code built-in color decorators for supported languages so @color directives can take effect."
         },
         "oklchShade.inlineAction": {
           "type": "boolean",

@@ -1,6 +1,6 @@
 import * as vscode from 'vscode';
 import type { ExtensionConfig } from '../config';
-import { scanDocument } from '../parser/cssScanner';
+import { getScanCandidates } from '../parser/scanCache';
 import { resolveColorFromContext } from './colorResolution';
 
 export class InlineActionProvider implements vscode.InlayHintsProvider {
@@ -11,7 +11,7 @@ export class InlineActionProvider implements vscode.InlayHintsProvider {
     range: vscode.Range
   ): vscode.ProviderResult<vscode.InlayHint[]> {
     const config = this.readConfig();
-    const candidates = scanDocument(document, config, {
+    const candidates = getScanCandidates(document, config, {
       respectColorDirectives: false,
       respectConvertDirectives: true
     });
