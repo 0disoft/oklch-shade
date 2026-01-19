@@ -2,13 +2,13 @@ import * as vscode from 'vscode';
 import { runConvertColorCommand } from './commands/convertColor';
 import { runConvertColorWorkspaceCommand } from './commands/convertColorWorkspace';
 import { getConfig } from './config';
+import { clearScanCache, clearScanCacheForUri } from './parser/scanCache';
+import { ColorDecorationManager } from './provider/colorDecorations';
 import { RawColorProvider } from './provider/colorProvider';
+import { resolveColorAtSelection } from './provider/colorResolution';
 import { RawColorHoverProvider } from './provider/hoverProvider';
 import { InlineActionProvider } from './provider/inlineActionProvider';
 import { StatusBarAction } from './provider/statusBarAction';
-import { resolveColorAtSelection } from './provider/colorResolution';
-import { ColorDecorationManager } from './provider/colorDecorations';
-import { clearScanCache, clearScanCacheForUri } from './parser/scanCache';
 
 export function activate(context: vscode.ExtensionContext) {
   const provider = new RawColorProvider(getConfig);
